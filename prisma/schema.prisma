@@ -1,0 +1,49 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Battle {
+  id           String         @id @default(uuid())
+  slug         String         @unique
+  title        String
+  rapperA      Json
+  rapperB      Json
+  transcript   Json
+  status       String         @default("DRAFT") // DRAFT | LIVE | CLOSED
+  voteClosesAt DateTime?
+  createdAt    DateTime       @default(now())
+  segments     AudioSegment[]
+  votes        Vote[]
+}
+
+model AudioSegment {
+  id         String   @id @default(uuid())
+  battleId   String
+  battle     Battle   @relation(fields: [battleId], references: [id], onDelete: Cascade)
+  turnIndex  Int // toujours 0 : une seule piste par battle
+  rapper     String // 'A' | 'B' (vestigial pour une piste complète)
+  fileName   String
+  mimeType   String
+  durationMs Int?
+  timings    Json? // TimedBar[] : paroles horodatées parsées depuis la réponse Lyria
+  createdAt  DateTime @default(now())
+
+  @@unique([battleId, turnIndex])
+}
+
+model Vote {
+  id        String   @id @default(uuid())
+  battleId  String
+  battle    Battle   @relation(fields: [battleId], references: [id], onDelete: Cascade)
+  voterHash String // sha256(email + sel) — jamais l'email en clair
+  choice    String // 'A' | 'B'
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([battleId, voterHash])
+}

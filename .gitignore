@@ -1,0 +1,25 @@
+# dependencies
+node_modules/
+
+# next
+.next/
+out/
+next-env.d.ts
+
+# production audio (stored on Railway volume, never commit)
+/audio/
+*.wav
+*.mp3
+
+# env & secrets
+.env
+.env.local
+.env.*.local
+
+# prisma
+prisma/*.db
+
+# misc
+.DS_Store
+*.log
+coverage/

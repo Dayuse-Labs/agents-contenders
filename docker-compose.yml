@@ -1,0 +1,22 @@
+# Base PostgreSQL locale pour le développement.
+# Port hôte 5435 (5433/5434 déjà pris par hotel-onboarding-db et dayuse-brain-pg).
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: agent-contenders-pg
+    environment:
+      POSTGRES_USER: contenders
+      POSTGRES_PASSWORD: contenders
+      POSTGRES_DB: contenders
+    ports:
+      - '5435:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U contenders -d contenders']
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  pgdata:

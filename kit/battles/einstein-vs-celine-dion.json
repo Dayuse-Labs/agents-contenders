@@ -1,0 +1,90 @@
+{
+  "battleId": "einstein-vs-celine-dion",
+  "rappers": [
+    {"id": "A", "name": "Albert Einstein", "agent": "einstein", "sex": "masculin", "age": 50, "voice": "fr-male-1"},
+    {"id": "B", "name": "Céline Dion", "agent": "celine-dion", "sex": "féminin", "age": 50, "voice": "fr-female-1"}
+  ],
+  "rounds": [
+    {
+      "round": 1,
+      "turns": [
+        {
+          "rapper": "A",
+          "bars": [
+            "E égale mc², gamine, j'ai recodé l'univers,",
+            "Toi tu poses une jolie note, moi je courbe l'espace-temps à l'envers.",
+            "Simple employé des brevets, j'ai breveté le génie pur,",
+            "Tu vises les aigus ? J'ai capté la fréquence de la lumière, c'est sûr.",
+            "Mes cheveux partent en vrille mais mes théories tiennent debout,",
+            "Ton cœur 'continuera' — mes équations, elles, survivent à tout."
+          ]
+        },
+        {
+          "rapper": "B",
+          "bars": [
+            "Tes équations survivent ? Mon refrain traverse les océans,",
+            "J'ai coulé tout le Titanic et fait pleurer la planète en chantant.",
+            "Tu parles de fréquences, chéri, mais c'est moi qui monte dans les cieux,",
+            "Une montée de gamme et ton tableau noir tombe à genoux, c'est mieux.",
+            "Toi t'as pris la Suisse pour patrie ? J'ai gagné l'Eurovision pour elle,",
+            "Alors range ta craie, Albert : ma vraie relativité, c'est ce vibrato qui t'ensorcelle."
+          ]
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "turns": [
+        {
+          "rapper": "A",
+          "bars": [
+            "L'Eurovision 88 ? Joli, mais ça reste un seul soir de gloire,",
+            "Moi je suis l'Homme du Siècle, mon nom traverse toute l'Histoire.",
+            "Tu poses ta voix sur un paquebot qui coule en fin de générique,",
+            "Moi j'ai plié la lumière du soleil — demande aux éclipses, c'est physique.",
+            "La 'Power of Love' ? Adorable. La vraie force, c'est la gravité,",
+            "Je fais tomber les pommes et les ego, toi tu fais juste sangloter."
+          ]
+        },
+        {
+          "rapper": "B",
+          "bars": [
+            "Sangloter ? Je fais vibrer des stades quand toi tu griffonnes tout seul,",
+            "'God does not play dice' — même le quantique t'a lâché, mon vieux.",
+            "Tu plies la lumière ? Moi je tiens la note quand les projecteurs s'allument,",
+            "Des années de résidence à Vegas ; ton tableau, lui, prend la poussière sous l'écume.",
+            "Tu parles d'éclipses, mais c'est moi l'étoile qu'on rappelle en rappel,",
+            "La relativité du temps ? Avec moi 'it's all coming back', et c'est éternel."
+          ]
+        }
+      ]
+    },
+    {
+      "round": 3,
+      "turns": [
+        {
+          "rapper": "A",
+          "bars": [
+            "'It's all coming back' ? Le temps est relatif, j'en ai fait la démo,",
+            "Pendant ton rappel interminable, j'ai déjà changé le tempo du cosmos.",
+            "Photoelectric effect : mon Nobel, le vrai, celui qu'on oublie de citer,",
+            "T'as des disques plein les murs, mais aucun n'explique le ciel étoilé.",
+            "Tu montes dans les aigus ? Moi je file à la vitesse de la lumière,",
+            "Quand tu tiens ta dernière note, mon E=mc² est déjà passé derrière."
+          ]
+        },
+        {
+          "rapper": "B",
+          "bars": [
+            "À la vitesse de la lumière ? C'est moi qu'on entend d'un bout du monde à l'autre,",
+            "Tu calcules les étoiles, mais c'est mon nom qui brille sur chaque côte.",
+            "Tu tires la langue sur une photo, moi je tire la larme à des millions,",
+            "Ton génie tient sur un tableau ; ma voix, elle, remplit chaque pavillon.",
+            "Garde ton espace-temps, Albert, et ta petite craie qui crisse :",
+            "Ce soir y'a deux génies sur scène — mais c'est le cœur qui finit en hit, signé Céline."
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent Contenders — Lecteur de battle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --gold1:#FFAF36; --gold2:#FFC536; --amber:#FFB800;
+    --ink:#292935; --ink2:#54545D; --ink3:#8E8E93;
+    --bg:#F9F9F9; --card:#FFFFFF; --border:#EAEAEB;
+    --orange:#F66236; --purple:#6E69AC; --coral:#F45C5A; --teal:#51B0B0;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Manrope',sans-serif; color:var(--ink); background:var(--bg);
+    min-height:100vh; padding:0 0 40px;
+  }
+  .glass{
+    position:sticky; top:0; z-index:10;
+    background:rgba(255,255,255,0.72); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+    border-bottom:1px solid rgba(0,0,0,0.06);
+    padding:18px 24px; text-align:center;
+  }
+  h1{
+    margin:0; font-size:34px; font-weight:800; letter-spacing:-1px;
+    background:linear-gradient(90deg,#FEB900 0%,#FD7030 33%,#FDAA9A 67%,#B7D5D5 100%);
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+  }
+  .sub{font-size:13px; font-weight:600; color:var(--ink3); letter-spacing:0.02em; margin-top:2px;}
+  .wrap{max-width:1000px; margin:0 auto; padding:0 24px;}
+
+  .controls{
+    display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:center;
+    margin:20px auto; max-width:1000px; padding:0 24px;
+  }
+  button.btn{
+    font-family:inherit; font-weight:600; font-size:14px; padding:12px 22px;
+    border-radius:100px; border:none; cursor:pointer; transition:all .2s ease; color:var(--ink);
+    background:linear-gradient(62deg,var(--gold1) 0%,var(--gold2) 100%);
+  }
+  button.btn:hover{background:linear-gradient(62deg,#FF9F26 0%,#FFB526 100%);}
+  button.ghost{
+    background:rgba(255,255,255,0.82); border:1px solid rgba(41,41,53,0.14); color:var(--ink);
+  }
+  button.ghost:hover{border-color:rgba(41,41,53,0.26);}
+  button.btn:disabled{opacity:.45; cursor:default;}
+  .toggle{
+    display:inline-flex; align-items:center; gap:7px; font-size:13px; font-weight:600; color:var(--ink2);
+    background:#fff; border:1px solid var(--border); border-radius:100px; padding:8px 14px; cursor:pointer;
+  }
+  .toggle input{accent-color:var(--gold1);}
+  select.sp{
+    font-family:inherit; font-size:13px; font-weight:600; color:var(--ink);
+    border:1px solid var(--border); border-radius:100px; padding:9px 14px; background:#fff; cursor:pointer;
+  }
+  .sep{width:1px; height:26px; background:var(--border);}
+
+  .arena{
+    display:grid; grid-template-columns:1fr 1.6fr 1fr; gap:16px; align-items:stretch;
+    max-width:1000px; margin:0 auto; padding:0 24px;
+  }
+  .rapper{
+    background:var(--card); border-radius:12px; box-shadow:0 2px 12px rgba(0,0,0,0.10);
+    padding:18px 16px; display:flex; flex-direction:column; gap:8px; text-align:center;
+    border-top:5px solid var(--accent,#ccc); transition:all .3s ease; opacity:.7;
+  }
+  .rapper.active{opacity:1; transform:translateY(-4px); box-shadow:0 8px 30px rgba(0,0,0,0.18);}
+  .rapper .role{font-size:11px; font-weight:700; letter-spacing:0.08em; color:var(--ink3); text-transform:uppercase;}
+  .rapper .name{font-size:20px; font-weight:800; line-height:1.2; color:var(--ink);}
+  .rapper .agent{font-size:12px; font-weight:500; color:var(--ink3);}
+  .rapper .score{
+    margin-top:auto; font-size:30px; font-weight:800; color:var(--accent,#ccc);
+  }
+  .rapper .micro{font-size:11px; color:var(--ink3); font-weight:600;}
+
+  .stage{
+    background:var(--ink); border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,0.25);
+    padding:22px 26px; color:#fff; display:flex; flex-direction:column; min-height:340px;
+  }
+  .stage .roundlbl{
+    font-size:12px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase;
+    color:var(--gold2); margin-bottom:14px;
+  }
+  .bars{flex:1; display:flex; flex-direction:column; justify-content:center; gap:9px;}
+  .bar{
+    font-size:19px; line-height:1.45; font-weight:600; color:rgba(255,255,255,0.30);
+    transition:all .35s ease; transform:translateY(2px);
+  }
+  .bar.shown{color:rgba(255,255,255,0.85); transform:none;}
+  .bar.current{color:#fff;}
+  .bar.current::before{
+    content:""; display:inline-block; width:8px; height:8px; border-radius:50%;
+    background:var(--gold1); margin-right:10px; vertical-align:middle;
+    animation:pulse 1s infinite;
+  }
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.6;transform:scale(1.25);}}
+  .stage .status{
+    margin-top:16px; font-size:12px; font-weight:600; color:var(--ink3); text-align:center;
+    background:rgba(255,255,255,0.06); border-radius:100px; padding:7px 14px; align-self:center;
+  }
+  .stage .empty{margin:auto; text-align:center; color:rgba(255,255,255,0.5); font-size:14px;}
+
+  .vote{
+    max-width:1000px; margin:18px auto 0; padding:0 24px;
+    display:flex; gap:12px; align-items:center; justify-content:center; flex-wrap:wrap;
+  }
+  .vote .lbl{font-size:13px; font-weight:700; color:var(--ink2);}
+  .winner{
+    text-align:center; font-weight:800; font-size:15px; color:var(--ink);
+    background:linear-gradient(135deg,#FFF8ED 0%,#FFFBF5 100%);
+    border:1px solid #FFE2B0; border-radius:100px; padding:10px 22px; display:none;
+  }
+  .footnote{max-width:1000px; margin:24px auto 0; padding:0 24px; font-size:12px; color:var(--ink3); text-align:center;}
+  .drop{border:1px dashed var(--border); border-radius:12px; padding:6px 14px; font-size:12px; color:var(--ink3);}
+
+  @media(max-width:820px){
+    .arena{grid-template-columns:1fr;}
+    .rapper{flex-direction:row; text-align:left; align-items:center; justify-content:space-between;}
+    .rapper .score{margin:0;}
+  }
+</style>
+</head>
+<body>
+  <header class="glass">
+    <h1>🎤 Agent Contenders</h1>
+    <div class="sub">RAP BATTLE ENTRE AGENTS · DAYUSE</div>
+  </header>
+
+  <div class="controls">
+    <button class="btn" id="play">▶ Lancer</button>
+    <button class="btn ghost" id="next">⏭ Couplet suivant</button>
+    <button class="btn ghost" id="restart">↻ Recommencer</button>
+    <span class="sep"></span>
+    <label class="toggle"><input type="checkbox" id="voiceChk" checked> Voix</label>
+    <label class="toggle"><input type="checkbox" id="beatChk"> Beat</label>
+    <select class="sp" id="speed" title="Vitesse">
+      <option value="0.9">0.9×</option>
+      <option value="1" selected>1×</option>
+      <option value="1.1">1.1×</option>
+      <option value="1.25">1.25×</option>
+    </select>
+    <span class="sep"></span>
+    <button class="btn ghost" id="loadBtn">📂 Charger un transcript</button>
+    <input type="file" id="file" accept=".json,application/json" style="display:none">
+  </div>
+
+  <div class="arena">
+    <div class="rapper left" id="cardA" style="--accent:var(--orange)">
+      <div class="role">Rappeur A</div>
+      <div class="name" id="nameA">—</div>
+      <div class="agent" id="agentA"></div>
+      <div class="score" id="scoreA">0</div>
+      <div class="micro">votes</div>
+    </div>
+
+    <div class="stage" id="stage">
+      <div class="roundlbl" id="roundlbl">En attente</div>
+      <div class="bars" id="bars"><div class="empty">Charge un transcript ou lance l'exemple pour démarrer la battle.</div></div>
+      <div class="status" id="status">Prêt</div>
+    </div>
+
+    <div class="rapper right" id="cardB" style="--accent:var(--purple)">
+      <div class="role">Rappeur B</div>
+      <div class="name" id="nameB">—</div>
+      <div class="agent" id="agentB"></div>
+      <div class="score" id="scoreB">0</div>
+      <div class="micro">votes</div>
+    </div>
+  </div>
+
+  <div class="vote">
+    <span class="lbl">Vote du public :</span>
+    <button class="btn ghost" id="voteA">+1 A</button>
+    <button class="btn ghost" id="voteB">+1 B</button>
+    <button class="btn" id="declare">🏆 Désigner le vainqueur</button>
+    <div class="winner" id="winner"></div>
+  </div>
+
+  <div class="footnote">
+    Astuce : ouvre cette page dans <b>Chrome</b> pour les meilleures voix. Le vote ci-dessus est un applaudimètre manuel — le QR/Google&nbsp;Form viendra avec la brique « vote ».
+  </div>
+
+<script>
+"use strict";
+
+// ---- Transcript d'exemple embarqué (Ada Lovelace vs Charles Babbage) ----
+const EXAMPLE = {
+  "battleId":"ada-lovelace-vs-charles-babbage",
+  "rappers":[
+    {"id":"A","name":"Ada Lovelace","agent":"ada-lovelace","sex":"féminin","age":30,"voice":"fr-female-1"},
+    {"id":"B","name":"Charles Babbage","agent":"charles-babbage","sex":"masculin","age":50,"voice":"fr-male-1"}
+  ],
+  "rounds":[
+    {"round":1,"turns":[
+      {"rapper":"A","bars":[
+        "On m'appelle l'Enchanteresse des Nombres, fille de Byron,",
+        "J'ai vu dans ta machine bien plus que des additions.",
+        "Toi tu calcules des tables, moi je compose un programme,",
+        "Note G, Bernoulli : le premier algorithme, c'est mon âme.",
+        "Tu rêves d'engrenages, moi j'ai rêvé le logiciel,",
+        "Un siècle avant le game, j'avais déjà le ciel."]},
+      {"rapper":"B","bars":[
+        "L'Enchanteresse des nombres ? Sur MA machine, faut le dire,",
+        "Sans mon Analytical Engine, t'avais rien pour écrire.",
+        "Tu parles d'algorithme, moi j'ai pensé tout le moteur,",
+        "La Difference Engine, c'est moi, le véritable auteur.",
+        "Byron t'a donné le nom, moi j'ai donné le plan,",
+        "Range ta Note G, gamine, et respecte l'artisan."]}
+    ]},
+    {"round":2,"turns":[
+      {"rapper":"A","bars":[
+        "Le plan ? T'as pris l'or de la Couronne et t'as rien fini,",
+        "Deux machines abandonnées, ton atelier est un débris.",
+        "Mes notes sont publiées, trois fois plus longues que ton texte,",
+        "Je traduis Menabrea et je double la mise au contexte.",
+        "Tu construis dans le vide, moi je vois l'usage réel,",
+        "Pendant qu'tu serres des boulons, j'invente l'immatériel."]},
+      {"rapper":"B","bars":[
+        "Abandonnées ? J'étais en avance, le siècle suivait pas,",
+        "Tes notes trois fois plus longues commentaient MES schémas.",
+        "Tu traduis Menabrea ? Donc tu pars de mon travail,",
+        "Moi j'ai posé la table avant que tu tiennes le détail.",
+        "Et pour les boulons, ma belle, c'est ça, bâtir pour de vrai,",
+        "Toi tu rêves sur papier, moi je forge le projet."]}
+    ]},
+    {"round":3,"turns":[
+      {"rapper":"A","bars":[
+        "Bâtir pour de vrai ? Ta machine a jamais tourné,",
+        "Moi mon idée tourne encore, chaque code en est l'héritier.",
+        "Tu détestais les musiciens de rue, t'en as fait une croisade,",
+        "Moi j'ai mis la musique DANS la machine, quelle façade.",
+        "On retient l'Enchanteresse quand on parle du futur,",
+        "Toi t'es la note de bas de page, moi la partition pure."]},
+      {"rapper":"B","bars":[
+        "Note de bas de page ? Tout ce game lit MON chapitre,",
+        "Sans Babbage, pas de Lovelace : je suis le premier maître.",
+        "Tu mets la musique dans la machine, jolie trouvaille,",
+        "Mais c'est moi qui ai forgé la scène où ton idée travaille.",
+        "Garde ta partition, je garde l'instrument complet :",
+        "L'Histoire nous cite ensemble — et c'est moi qu'elle met en premier."]}
+    ]}
+  ]
+};
+
+// ---- État ----
+let battle=null, seq=[], vIdx=0, lIdx=0, playing=false;
+let voiceOn=true, beatOn=false, rate=1;
+let voices=[], voiceFem=null, voiceMasc=null;
+const ttsOk = ('speechSynthesis' in window);
+
+// ---- DOM ----
+const $ = id => document.getElementById(id);
+const barsEl=$('bars'), statusEl=$('status'), roundEl=$('roundlbl');
+const cardA=$('cardA'), cardB=$('cardB');
+
+function loadBattle(data){
+  battle=data;
+  seq=[];
+  (battle.rounds||[]).forEach(r=> (r.turns||[]).forEach(t=> seq.push({rapper:t.rapper, bars:t.bars||[], round:r.round})));
+  vIdx=0; lIdx=0; stop();
+  const A=byId('A'), B=byId('B');
+  $('nameA').textContent=A?A.name:'A'; $('agentA').textContent=metaOf(A);
+  $('nameB').textContent=B?B.name:'B'; $('agentB').textContent=metaOf(B);
+  $('scoreA').textContent='0'; $('scoreB').textContent='0';
+  $('winner').style.display='none';
+  roundEl.textContent = seq.length? 'Prêt — '+seq.length+' couplets' : 'Aucun couplet';
+  renderVerse(0,-1);
+  statusEl.textContent='Prêt';
+}
+function byId(id){ return (battle&&battle.rappers||[]).find(r=>r.id===id); }
+function metaOf(r){ if(!r) return ''; const s=r.agent?'@'+r.agent:''; const x=[]; if(r.sex) x.push(r.sex); if(r.age) x.push('~'+r.age+' ans'); return (s&&x.length)?s+' · '+x.join(' · '):(s||x.join(' · ')); }
+
+function renderVerse(i, upto){
+  const v=seq[i];
+  if(!v){ barsEl.innerHTML='<div class="empty">Fin de la battle.</div>'; setActive(null); return; }
+  setActive(v.rapper);
+  roundEl.textContent='Round '+v.round+' · '+(byId(v.rapper)?byId(v.rapper).name:v.rapper);
+  barsEl.innerHTML='';
+  v.bars.forEach((line,idx)=>{
+    const d=document.createElement('div');
+    d.className='bar'+(idx<upto?' shown':'')+(idx===upto?' current':'');
+    d.textContent=line;
+    barsEl.appendChild(d);
+  });
+}
+function setActive(r){
+  cardA.classList.toggle('active', r==='A');
+  cardB.classList.toggle('active', r==='B');
+}
+
+// ---- Lecture ----
+function play(){
+  if(!seq.length || playing) return;
+  playing=true; $('play').textContent='⏸ Pause';
+  if(beatOn) startBeat();
+  speakLine();
+}
+function pause(){
+  playing=false; $('play').textContent='▶ Reprendre';
+  if(ttsOk) speechSynthesis.cancel();
+  stopBeat();
+}
+function stop(){
+  playing=false; $('play').textContent='▶ Lancer';
+  if(ttsOk) speechSynthesis.cancel();
+  stopBeat();
+}
+function togglePlay(){ playing? pause() : play(); }
+
+function speakLine(){
+  const v=seq[vIdx];
+  if(!v){ finish(); return; }
+  renderVerse(vIdx, lIdx);
+  const line=v.bars[lIdx]||'';
+  if(voiceOn && ttsOk){
+    const rp = byId(v.rapper)||{};
+    const isFem = /f[ée]m/i.test(rp.sex||'');
+    const u=new SpeechSynthesisUtterance(line);
+    const voice = isFem?voiceFem:voiceMasc;
+    if(voice) u.voice=voice;
+    u.lang='fr-FR';
+    u.rate = rate * (isFem?0.98:1.0);
+    let pitch = isFem?1.18:0.84;
+    const age = parseFloat(rp.age)||40; pitch += (40-age)*0.005;
+    u.pitch = Math.max(0.6, Math.min(1.6, pitch));
+    u.onend = advance;
+    u.onerror = advance;
+    speechSynthesis.speak(u);
+  } else {
+    const delay = Math.max(900, line.length*42) / rate;
+    setTimeout(()=>{ if(playing) advance(); }, delay);
+  }
+}
+function advance(){
+  if(!playing) return;
+  lIdx++;
+  const v=seq[vIdx];
+  if(!v){ finish(); return; }
+  if(lIdx>=v.bars.length){
+    vIdx++; lIdx=0;
+    if(vIdx>=seq.length){ finish(); return; }
+    setTimeout(()=>{ if(playing) speakLine(); }, 650);
+  } else {
+    speakLine();
+  }
+}
+function nextVerse(){
+  if(!seq.length) return;
+  if(ttsOk) speechSynthesis.cancel();
+  if(vIdx<seq.length){ vIdx++; lIdx=0; }
+  if(vIdx>=seq.length){ finish(); return; }
+  renderVerse(vIdx,-1);
+  if(playing) speakLine();
+}
+function restart(){
+  stop(); vIdx=0; lIdx=0; renderVerse(0,-1);
+  roundEl.textContent='Prêt — '+seq.length+' couplets'; statusEl.textContent='Prêt';
+  $('winner').style.display='none';
+}
+function finish(){
+  playing=false; $('play').textContent='▶ Lancer'; stopBeat();
+  setActive(null);
+  barsEl.innerHTML='<div class="empty">🎶 Fin de la battle — au public de voter !</div>';
+  roundEl.textContent='Terminé'; statusEl.textContent='Fin';
+}
+
+// ---- Voix ----
+function pickVoices(){
+  if(!ttsOk) return;
+  voices=speechSynthesis.getVoices();
+  const fr=voices.filter(v=>/fr/i.test(v.lang));
+  const pool = fr.length?fr:voices;
+  const femRe=/(f[ée]m|female|woman|amélie|amelie|aur[ée]lie|virginie|julie|aurore|elsa|chantal|l[ée]a|aude|c[ée]line|google fran)/i;
+  voiceFem = pool.find(v=>femRe.test(v.name)) || pool[0] || null;
+  voiceMasc = pool.find(v=>v!==voiceFem && !femRe.test(v.name)) || pool[1] || pool[0] || null;
+}
+if(ttsOk){ pickVoices(); speechSynthesis.onvoiceschanged=pickVoices; }
+
+// ---- Beat (Web Audio) ----
+let actx=null, master=null, beatTimer=null, nextNote=0, step=0;
+const TEMPO=86, spb=60/TEMPO;
+function ensureCtx(){
+  if(!actx){ actx=new (window.AudioContext||window.webkitAudioContext)(); master=actx.createGain(); master.gain.value=0.16; master.connect(actx.destination); }
+}
+function kick(t){
+  const o=actx.createOscillator(), g=actx.createGain();
+  o.frequency.setValueAtTime(165,t); o.frequency.exponentialRampToValueAtTime(48,t+0.13);
+  g.gain.setValueAtTime(0.9,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.2);
+  o.connect(g).connect(master); o.start(t); o.stop(t+0.22);
+}
+function hat(t){
+  const len=Math.floor(actx.sampleRate*0.04);
+  const buf=actx.createBuffer(1,len,actx.sampleRate); const d=buf.getChannelData(0);
+  for(let i=0;i<len;i++) d[i]=Math.random()*2-1;
+  const s=actx.createBufferSource(); s.buffer=buf;
+  const f=actx.createBiquadFilter(); f.type='highpass'; f.frequency.value=7500;
+  const g=actx.createGain(); g.gain.setValueAtTime(0.22,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.04);
+  s.connect(f).connect(g).connect(master); s.start(t);
+}
+function scheduler(){
+  while(nextNote < actx.currentTime + 0.18){
+    if(step%4===0 || step%4===2) kick(nextNote);
+    hat(nextNote);
+    nextNote += spb/2; step++;
+  }
+}
+function startBeat(){
+  if(!beatOn) return;
+  ensureCtx();
+  if(actx.state==='suspended') actx.resume();
+  nextNote=actx.currentTime+0.05; step=0;
+  if(beatTimer) clearInterval(beatTimer);
+  beatTimer=setInterval(scheduler,40);
+}
+function stopBeat(){ if(beatTimer){ clearInterval(beatTimer); beatTimer=null; } }
+
+// ---- Votes ----
+function bump(id){
+  const el=$('score'+id); el.textContent=(parseInt(el.textContent||'0',10)+1);
+}
+function declare(){
+  const a=parseInt($('scoreA').textContent,10), b=parseInt($('scoreB').textContent,10);
+  const w=$('winner'); w.style.display='inline-block';
+  if(a===b){ w.textContent='Égalité ! '+a+'–'+b+' · on relance un round ?'; }
+  else {
+    const win=a>b?byId('A'):byId('B');
+    w.textContent='🏆 '+(win?win.name:(a>b?'A':'B'))+' l\'emporte '+Math.max(a,b)+'–'+Math.min(a,b)+' !';
+  }
+}
+
+// ---- Événements ----
+$('play').onclick=togglePlay;
+$('next').onclick=nextVerse;
+$('restart').onclick=restart;
+$('voteA').onclick=()=>bump('A');
+$('voteB').onclick=()=>bump('B');
+$('declare').onclick=declare;
+$('voiceChk').onchange=e=>{ voiceOn=e.target.checked; if(!voiceOn&&ttsOk) speechSynthesis.cancel(); };
+$('beatChk').onchange=e=>{ beatOn=e.target.checked; if(beatOn&&playing) startBeat(); if(!beatOn) stopBeat(); };
+$('speed').onchange=e=>{ rate=parseFloat(e.target.value); };
+$('loadBtn').onclick=()=>$('file').click();
+$('file').onchange=e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{ try{ loadBattle(JSON.parse(r.result)); statusEl.textContent='Chargé : '+f.name; }
+    catch(err){ alert('JSON invalide : '+err.message); } };
+  r.readAsText(f);
+};
+
+// ---- Démarrage ----
+loadBattle(EXAMPLE);
+</script>
+</body>
+</html>

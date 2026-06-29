@@ -33,6 +33,8 @@ export class MusicGenerationError extends Error {
   constructor(
     message: string,
     public readonly cause?: unknown,
+    /** Raison de blocage Lyria (PROHIBITED_CONTENT / SAFETY / RECITATION…) si applicable. */
+    public readonly blockReason?: string,
   ) {
     super(message);
     this.name = 'MusicGenerationError';

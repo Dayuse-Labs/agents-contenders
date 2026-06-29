@@ -27,7 +27,7 @@ Pour chaque round (de 1 jusqu'au nombre de rounds), et à chaque tour de chaque 
   - « Ton adversaire incarne **<vraie personnalité de l'autre rappeur>**. »
   - Sauf au tout premier couplet : « Dernier couplet de ton adversaire :
     \<colle ici ses bars exacts\> »
-  - « Recherche ton adversaire (WebSearch / WebFetch) si tu ne l'as pas déjà fait, puis crache ton couplet : 12 à 16 bars. Garde-fous : faits publics et notoires uniquement, factuel (aucune fausse citation), AUCUN sujet sensible (santé, vie privée, affaires judiciaires, attributs protégés), pas d'insulte vulgaire. Réponds au dernier couplet adverse. Sortie : uniquement tes bars, un par ligne. »
+  - « Recherche ton adversaire (WebSearch / WebFetch) si tu ne l'as pas déjà fait, puis crache ton couplet : 12 à 16 bars. Garde-fous : faits publics et notoires uniquement, factuel (aucune fausse citation), AUCUN sujet sensible (santé, vie privée, affaires judiciaires, attributs protégés), pas d'insulte vulgaire. **N'écris JAMAIS le nom réel d'une personnalité (ni le tien ni celui de l'adversaire) — adresse-toi directement (« toi ») ou par périphrase ; ne cite JAMAIS des paroles ou titres de chansons réelles existantes.** (Ces noms/citations font bloquer la génération vocale Lyria → PROHIBITED_CONTENT.) Réponds au dernier couplet adverse. Sortie : uniquement tes bars, un par ligne. »
 - Récupère ses bars **tels quels** (ne les réécris jamais).
 
 Équité : exactement la même consigne et les mêmes garde-fous pour les deux rappeurs.

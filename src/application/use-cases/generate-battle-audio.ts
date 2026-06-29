@@ -6,6 +6,7 @@ import type { AudioStorage } from '@/application/ports/audio-storage';
 import type { AudioSegmentRepository } from '@/domain/repositories/audio-segment-repository';
 import { parseTimedLyrics, fillStartTimes } from '@/application/lyrics/parse-timed-lyrics';
 import { matchBars } from '@/application/lyrics/match-bars';
+import { redactNames } from '@/application/lyrics/redact-names';
 
 export interface GenerateBattleAudioDeps {
   readonly music: MusicGenerator;
@@ -27,12 +28,24 @@ export class GenerateBattleAudio {
     const verses = battle.verseSequence();
     if (verses.length === 0) return err(new Error('Transcript vide.'));
 
+    // Caviarde les noms réels des rappeurs avant Lyria (anti-PROHIBITED_CONTENT) :
+    // pour chaque couplet, « moi » = celui qui chante, « toi » = l'adversaire. On
+    // réutilise ces couplets caviardés pour la synchro (matchBars) afin que
+    // l'attribution reste alignée sur ce que Lyria chante réellement.
+    const sanitizedVerses = verses.map((v) => ({
+      ...v,
+      bars: redactNames(v.bars, {
+        selfName: battle.rapperBySide(v.rapper).name,
+        opponentName: battle.rapperBySide(v.rapper === 'A' ? 'B' : 'A').name,
+      }),
+    }));
+
     const generated = await this.deps.music.generateTrack({
       voices: {
         A: { sex: battle.rapperA.sex, age: battle.rapperA.age },
         B: { sex: battle.rapperB.sex, age: battle.rapperB.age },
       },
-      verses: verses.map((v) => ({ rapper: v.rapper, bars: v.bars })),
+      verses: sanitizedVerses.map((v) => ({ rapper: v.rapper, bars: v.bars })),
     });
     if (!generated.success) return err(generated.error);
 
@@ -48,7 +61,7 @@ export class GenerateBattleAudio {
     if (!saved.success) return err(saved.error);
 
     const lines = fillStartTimes(parseTimedLyrics(generated.data.timedLyricsText));
-    const timings = matchBars(verses, lines);
+    const timings = matchBars(sanitizedVerses, lines);
 
     await this.deps.segments.deleteByBattle(battle.id);
     const segment: AudioSegment = {

@@ -17,6 +17,9 @@ import {
  */
 const LYRIA_MODEL = 'lyria-3-pro-preview';
 
+/** Pause avant l'unique relance (couvre un faux positif/erreur transitoire du filtre). */
+const RETRY_DELAY_MS = 1500;
+
 const DEFAULT_STYLE =
   'French rap battle, boom-bap, ~90 BPM, hard kick, vinyl scratches, ' +
   'deep bass, crowd hype, aggressive articulate flow, punchlines, dark tense battle-stage energy';
@@ -32,6 +35,19 @@ export class LyriaMusicGenerator implements MusicGenerator {
     request: TrackRequest,
   ): Promise<Result<GeneratedTrack, MusicGenerationError>> {
     const prompt = buildPrompt(request);
+    const first = await this.attempt(prompt);
+    if (first.success) return first;
+
+    // Une seule relance : couvre un faux positif/erreur transitoire du filtre.
+    // Un blocage déterministe (nom réel chanté, etc.) échouera de nouveau — c'est
+    // le caviardage en amont (redactNames) qui le règle, pas la relance.
+    console.warn(`[lyria] échec (${first.error.message}) — nouvelle tentative…`);
+    await new Promise<void>((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+    return this.attempt(prompt);
+  }
+
+  /** Une tentative de génération sur le stream Lyria. */
+  private async attempt(prompt: string): Promise<Result<GeneratedTrack, MusicGenerationError>> {
     try {
       const stream = await this.ai.models.generateContentStream({
         model: LYRIA_MODEL,
@@ -65,7 +81,16 @@ export class LyriaMusicGenerator implements MusicGenerator {
       }
 
       if (blockReason) {
-        return err(new MusicGenerationError(`Génération bloquée par Lyria : ${blockReason}`));
+        // Diagnostic : la raison exacte (PROHIBITED_CONTENT / SAFETY / RECITATION…)
+        // et le prompt envoyé, pour identifier précisément ce qui déclenche le filtre.
+        console.warn(`[lyria] bloqué : ${blockReason}\n--- prompt ---\n${prompt}\n--------------`);
+        return err(
+          new MusicGenerationError(
+            `Génération bloquée par Lyria : ${blockReason}`,
+            undefined,
+            blockReason,
+          ),
+        );
       }
       const base64 = audioChunks.join('');
       if (base64.length === 0) {

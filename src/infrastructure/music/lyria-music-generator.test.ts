@@ -16,14 +16,34 @@ describe('buildPrompt', () => {
   it('décrit un morceau continu avec les deux voix (sexe + âge)', () => {
     const prompt = buildPrompt(request);
     expect(prompt).toContain('ONE continuous song');
-    expect(prompt).toContain('Rapper A is a male voice sounding about 46 years old');
-    expect(prompt).toContain('Rapper B is a female voice sounding about 50 years old');
+    expect(prompt).toContain('a male voice sounding about 46 years old');
+    expect(prompt).toContain('a female voice sounding about 50 years old');
   });
 
-  it("émet un tag [Verse - Rapper X] par couplet, dans l'ordre", () => {
+  it('tague chaque couplet avec sa voix exacte (sexe+âge), sans label Rapper A/B', () => {
     const prompt = buildPrompt(request);
-    const tags = prompt.match(/\[Verse - Rapper [AB]\]/g);
-    expect(tags).toEqual(['[Verse - Rapper A]', '[Verse - Rapper B]']);
-    expect(prompt).toContain('[Verse - Rapper A]\nligne a1\nligne a2');
+    const tags = prompt.match(/\[Verse - [^\]]+\]/g);
+    expect(tags).toEqual([
+      '[Verse - a male voice sounding about 46 years old]',
+      '[Verse - a female voice sounding about 50 years old]',
+    ]);
+    expect(prompt).toContain('[Verse - a male voice sounding about 46 years old]\nligne a1\nligne a2');
+    // Le label « Rapper A/B » (non reconnu par Lyria) ne doit plus apparaître.
+    expect(prompt).not.toContain('Rapper A');
+    expect(prompt).not.toContain('Rapper B');
+  });
+
+  it('lie la voix au couplet même quand B ouvre la battle (cas buzz-vs-celine)', () => {
+    const prompt = buildPrompt({
+      voices: { A: { sex: 'masculin', age: 30 }, B: { sex: 'féminin', age: 50 } },
+      verses: [
+        { rapper: 'B', bars: ['ouverture de la diva'] },
+        { rapper: 'A', bars: ['réponse'] },
+      ],
+    });
+    const tags = prompt.match(/\[Verse - [^\]]+\]/g);
+    // 1er couplet = voix féminine (B ouvre), 2e = voix masculine : plus de voix inversées.
+    expect(tags?.[0]).toBe('[Verse - a female voice sounding about 50 years old]');
+    expect(tags?.[1]).toBe('[Verse - a male voice sounding about 30 years old]');
   });
 });

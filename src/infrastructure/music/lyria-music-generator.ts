@@ -112,17 +112,26 @@ function voiceDescriptor(voice: VoiceSpec): string {
 /**
  * Construit le prompt de la battle entière. Surtout pas de nom de personnalité
  * (protection anti-imitation de Lyria → PROHIBITED_CONTENT) : les voix sont
- * décrites par sexe + âge, les couplets tagués « Rapper A / Rapper B ».
+ * décrites par sexe + âge.
+ *
+ * Chaque couplet est tagué avec SA voix exacte (« [Verse - a female voice…] »),
+ * et non un label « Rapper A/B » : Lyria ne reconnaît que les tags de structure
+ * (`[Verse]`, `[Chorus]`…) et ignore le suffixe « Rapper A », si bien qu'il se
+ * contentait d'alterner les deux voix dans l'ordre — d'où des voix inversées
+ * quand B ouvrait la battle. Le descripteur est dans les crochets (métadonnée,
+ * jamais chantée) pour lier la voix au couplet quel que soit l'ordre.
  */
 export function buildPrompt(request: TrackRequest): string {
   const { voices, verses, styleHint } = request;
   const style = styleHint ?? DEFAULT_STYLE;
   const header =
-    `${style}. ONE continuous song: two rappers trading verses on the SAME beat. ` +
-    `Rapper A is ${voiceDescriptor(voices.A)}; Rapper B is ${voiceDescriptor(voices.B)}. ` +
-    'Keep one coherent instrumental throughout and alternate the two voices per verse.';
+    `${style}. ONE continuous song on a single beat: two clearly distinct rappers — ` +
+    `${voiceDescriptor(voices.A)} and ${voiceDescriptor(voices.B)} — trading verses. ` +
+    'Each verse below is tagged with the exact voice that must sing it: honour every tag ' +
+    'and keep each voice consistent from start to finish.';
   const sections = verses.map(
-    (verse) => `[Verse - Rapper ${verse.rapper}]\n${verse.bars.join('\n')}`,
+    (verse) =>
+      `[Verse - ${voiceDescriptor(verse.rapper === 'A' ? voices.A : voices.B)}]\n${verse.bars.join('\n')}`,
   );
   return [header, ...sections].join('\n\n');
 }
